@@ -169,8 +169,7 @@ let game = ( function () {
         object.zStep = zStep / stepThrow;
         object.yBeg = yBeg;
         object.yMax = yMax;
-        object.teta = ( yBeg / distance( xStep, zStep ) > 1 ? Math.PI / 2 - Math.sin( yMax / distance( xStep, zStep ) % 1 ) : Math.PI - Math.asin( yMax / distance( xStep, zStep ) ) );
-        console.log( object.teta );
+        object.teta = ( 30 / distance( xStep, zStep ) < 1 ? Math.PI / 2 - Math.sin( yMax / distance( xStep, zStep ) % 1 ) : Math.PI - Math.asin( yMax / distance( xStep, zStep ) ) );
         object.tetaStep = object.teta / stepThrow;
         object.actualStep = 0;
         return object;
