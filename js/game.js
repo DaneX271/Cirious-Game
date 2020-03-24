@@ -9,6 +9,7 @@ let game = ( function () {
     let objectsInScene = [ ];
     let objectsUpAir = [ ];
     let time = new THREE.Clock;
+    let stepThrow = 100;
 
     // create our scene
     let initScene = function( ) {
@@ -18,6 +19,8 @@ let game = ( function () {
         scene.fog = new THREE.Fog( scene.background, 1, 5000 );
 
     }
+
+    let distance = ( x, y ) => Math.sqrt( Math.pow( x, 2 ) + Math.pow( y, 2 ) );
 
     // create the camera and set it up
     let initCamera = function( ) {
@@ -158,6 +161,35 @@ let game = ( function () {
 
     }
 
+    let createObjectUpAir = function( mesh, xStep, zStep, yBeg, yMax ) {
+
+        let object = { };
+        object.mesh = mesh;
+        object.xStep = xStep / stepThrow;
+        object.zStep = zStep / stepThrow;
+        object.yBeg = yBeg;
+        object.yMax = yMax;
+        object.teta = ( yBeg / distance( xStep, zStep ) > 1 ? Math.PI / 2 - Math.sin( yMax / distance( xStep, zStep ) % 1 ) : Math.PI - Math.asin( yMax / distance( xStep, zStep ) ) );
+        console.log( object.teta );
+        object.tetaStep = object.teta / stepThrow;
+        object.actualStep = 0;
+        return object;
+
+    }
+
+    let throwed = function( object ) {
+
+        object.mesh.position.x -= object.xStep;
+        object.mesh.position.y = object.yBeg * Math.sin( object.teta );
+        object.mesh.position.z -= object.zStep;
+        object.actualStep += 1;
+        object.teta -= object.tetaStep;
+        if ( object.actualStep >= stepThrow )
+            return 0;
+        return 1;
+
+    }
+
     let init = function( ) {
 
         initScene( );
@@ -178,8 +210,13 @@ let game = ( function () {
         window.addEventListener( 'click', ( ) => {
 
             time.start( );
-            objectInHand[0].position.copy( sphere.position );
-            objectsInScene.push( objectInHand[0] ); 
+            pos.copy( objectInHand[0].position );
+            objectsUpAir.push( createObjectUpAir( objectInHand[0], 
+                pos.x - sphere.position.x, 
+                pos.z - sphere.position.z,
+                pos.y,
+                distance( pos.x - sphere.position.x, pos.z - sphere.position.z ) ) );
+                //distance( pos.x - sphere.position.x, pos.z - sphere.position.z ) <= 1 ? distance( pos.x - sphere.position.x, pos.z - sphere.position.z ) : Math.log( distance( pos.x - sphere.position.x, pos.z - sphere.position.z ) ) * 10 ) ); 
             objectInHand.shift( );
 
         } );
@@ -202,9 +239,12 @@ let game = ( function () {
 
     let moveObjectsUpAir = function( ) {
 
-        objectsUpAir.forEach( object => {
+        for ( let i = 0; i < objectsUpAir.length; i++ ) {
+            if( throwed( objectsUpAir[i] ) == 0 ) {
+                scene.remove( objectsUpAir[i].mesh );
+            }
+        }
 
-        })
     }
 
     let moveTarget = function( ) {
