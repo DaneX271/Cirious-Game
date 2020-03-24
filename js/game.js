@@ -1,21 +1,14 @@
 let game = ( function () {
 
-    let scene, camera, renderer, dirLight, hemiLight, ground, cube, sphere, controls, raycaster, ball;
+    let scene, camera, renderer, dirLight, hemiLight, ground, cube, sphere, controls, raycaster;
 
     let mouse = new THREE.Vector2( );
-    let sphereAround = [ ];
     let pos = new THREE.Vector3( );
     let intersect = [ ];
-
-
-    // function resolving problems when resizing the window
-    let onWindowResize = function( ) {
-
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix( );
-        renderer.setSize( window.innerWidth, window.innerHeight );
-
-    }
+    let objectInHand = [ ];
+    let objectsInScene = [ ];
+    let objectsUpAir = [ ];
+    let time = new THREE.Clock;
 
     // create our scene
     let initScene = function( ) {
@@ -38,18 +31,17 @@ let game = ( function () {
 
         raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 
-
         // unlock the camera
-        window.addEventListener( 'click', function ( ) {
+        window.addEventListener( 'keypress', ( e ) => {
 
-            controls.lock();
+            if( e.keyCode == 32 )
+                controls.lock();
 
         }, false );
-        scene.add( controls.getObject() );
-
+        scene.add( controls.getObject( ) );
 
         // add an invisible sphere around the camera
-        const sphereGeometry = new THREE.SphereGeometry( 20, 50, 50);
+        const sphereGeometry = new THREE.SphereGeometry( 20, 50, 50 );
         const sphereMaterial = new THREE.MeshLambertMaterial( { color: 0xff0000 } );
         const sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
         sphere.castShadow = false;
@@ -57,7 +49,6 @@ let game = ( function () {
         sphere.visible = false;
         sphere.position.y = 30;
         scene.add( sphere );
-        sphereAround.push( sphere );
 
     }
 
@@ -93,7 +84,7 @@ let game = ( function () {
         dirLight.shadow.mapSize.width = 2048;
         dirLight.shadow.mapSize.height = 2048;
 
-        const d = 200;
+        const d = 50;
 
         dirLight.shadow.camera.left = - d;
         dirLight.shadow.camera.right = d;
@@ -129,52 +120,38 @@ let game = ( function () {
 
     }
 
-    // create all the objects
-    let initObjects = function( ) {
+    let addObject = function( ) {
 
-        // add a basketball
-        const objLoader = new THREE.OBJLoader( );
-        objLoader.setPath( '/modele 3d/basket_ball/' );
-        const mtlLoader = new THREE.MTLLoader( );
-        mtlLoader.setPath( '/modele 3d/basket_ball/' );
-
-        new Promise( ( resolve ) => {
-
-            mtlLoader.load( 'NBA_BASKETBALL.mtl', ( materials ) => {
-                resolve( materials );
-            })
-        })
-        .then( ( materials ) => {
-            materials.preload( );
-            objLoader.setMaterials( materials );
-            objLoader.load( 'NBA_BASKETBALL.obj', ( object ) => {
-                ball = object;
-                scene.add( ball );
-            })
-        })
-
-        // add a cube
         const cubeGeometry = new THREE.BoxGeometry( 2, 2, 2 );
         const cubeMaterial = new THREE.MeshLambertMaterial( { color: 0xFFCC00 } );
         cube = new THREE.Mesh( cubeGeometry, cubeMaterial );
-        cube.position.set(
-            20,
-            50,
-            -30
-        );
         cube.castShadow = true;
         cube.receiveShadow = true;
-        //scene.add( cube );
+        scene.add( cube );
+        objectInHand.push( cube );
+        moveHand( );
 
+    }
 
+    // create all the objects
+    let initObjects = function( ) {
+
+        // add a ground
+        const groundGeo = new THREE.PlaneBufferGeometry( 10000, 10000 );
+        const groundMat = new THREE.MeshLambertMaterial( { color: 0xffffff } );
+        groundMat.color.setHSL( 0.095, 1, 0.75 );
+        ground = new THREE.Mesh( groundGeo, groundMat );
+        ground.rotation.x = - Math.PI / 2;
+        ground.receiveShadow = true;
+        scene.add( ground );
+        objectsInScene.push( ground );
+        
+        addObject( );
+
+        // target
         const sphereGeometry = new THREE.SphereGeometry( 5, 30, 30 );
         const sphereMaterial = new THREE.MeshLambertMaterial( { color: 0x00FF00 } );
         sphere = new THREE.Mesh( sphereGeometry, sphereMaterial );
-        sphere.position.set(
-            15,
-            15,
-            -30
-        );
         sphere.castShadow = true;
         sphere.receiveShadow = true;
         scene.add( sphere );
@@ -185,45 +162,58 @@ let game = ( function () {
 
         initScene( );
         initCamera( );
-
-        window.addEventListener( 'resize', onWindowResize, false );
-
         initRender( );
-        initLights( );        
-
-        // add a ground
-        const groundGeo = new THREE.PlaneBufferGeometry( 10000, 10000 );
-        const groundMat = new THREE.MeshLambertMaterial( { color: 0xffffff } );
-        groundMat.color.setHSL( 0.095, 1, 0.75 );
-        ground = new THREE.Mesh( groundGeo, groundMat );
-        ground.rotation.x = - Math.PI / 2;
-        ground.receiveShadow = true;
-        scene.add( ground );
-
+        initLights( );
         initObjects( );
+
+        // function resolving problems when resizing the window
+        window.addEventListener( 'resize', ( ) => {
+
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix( );
+            renderer.setSize( window.innerWidth, window.innerHeight );
+
+        } );
+
+        window.addEventListener( 'click', ( ) => {
+
+            time.start( );
+            objectInHand[0].position.copy( sphere.position );
+            objectsInScene.push( objectInHand[0] ); 
+            objectInHand.shift( );
+
+        } );
 
     }
 
-    let mooveCube = function( ) {
+    let moveHand = function( ) {
 
+        if( !objectInHand[0] ) 
+            addObject( );
         raycaster.setFromCamera( mouse, camera );
         pos.copy( raycaster.ray.direction );
         pos.x = pos.x * 20;
         pos.y = pos.y * 20;
         pos.z = pos.z * 20;
         pos.add( raycaster.ray.origin );
-        if (ball)
-            ball.position.copy( pos );
+        objectInHand[0].position.copy( pos );
 
     }
 
-    let mooveShpere = function( ) {
+    let moveObjectsUpAir = function( ) {
+
+        objectsUpAir.forEach( object => {
+
+        })
+    }
+
+    let moveTarget = function( ) {
 
         raycaster.setFromCamera( mouse, camera );
         raycaster.far = 1000;
         if( raycaster.ray.direction.y >= -0.05 )
             raycaster.ray.direction.y = -0.05;
-        intersect = raycaster.intersectObject( ground );
+        intersect = raycaster.intersectObjects( objectsInScene );
         sphere.position.copy( intersect[0].point );
 
     }
@@ -231,8 +221,11 @@ let game = ( function () {
     // game logic
     let update = function( ) {
 
-        mooveCube( );
-        mooveShpere( );
+        if ( time.oldTime == time.startTime || time.getElapsedTime( ) > 2 ) {
+            moveHand( );
+        }
+        moveObjectsUpAir( );
+        moveTarget( );
 
     }
 
