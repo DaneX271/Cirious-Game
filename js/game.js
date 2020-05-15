@@ -522,6 +522,7 @@ const game = ( function () {
                     SCORE += COMBO * 100;
                 }
                 else {
+                    SCORE -= 50;
                     COMBO = 0;
                 }
                 MAX_COMBO = Math.max( MAX_COMBO, COMBO );
