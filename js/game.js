@@ -7,6 +7,7 @@ const game = ( function () {
 
     let SCORE = 0;
     let COMBO = 0;
+    let FAIL_COMBO = 0;
     let MAX_COMBO = 0;
 
     let loadingManager;
@@ -177,17 +178,26 @@ const game = ( function () {
         controls.addEventListener( 'unlock', ( ) => {
 
             timePaused = performance.now( );
+            const button = document.createElement( "button" );
+            button.innerHTML = "Retry";
+            
+            button.addEventListener( 'click', ( ) => {
+                location.reload( );
+            } );
 
-            if ( performance.now( ) - timeInPause >= 19989 ) {
+            if ( FAIL_COMBO == 5 ) {
 
-                document.getElementById( 'info' ).innerHTML = "Time's up! <br /><br />Score : " + SCORE + "<br />Combo max : " + MAX_COMBO;
-                const button = document.createElement( "button" );
-                button.innerHTML = "Retry";
+                document.body.style.opacity = 1;
+                document.getElementById( 'info' ).innerHTML = "You failed !!";
+
                 document.getElementById( 'info' ).appendChild( button );
 
-                button.addEventListener( 'click', ( ) => {
-                    location.reload( );
-                } );
+            } else if ( performance.now( ) - timeInPause >= 19989 ) {
+
+                document.getElementById( 'info' ).innerHTML = "Time's up!<br /><br />Score : " + SCORE + "<br />Combo max : " + MAX_COMBO;
+                
+                document.getElementById( 'info' ).appendChild( button );
+
 
             }
             else {
@@ -520,10 +530,12 @@ const game = ( function () {
                 if ( rslThrow == 2 ) {
                     COMBO += 1;
                     SCORE += COMBO * 100;
+                    FAIL_COMBO = FAIL_COMBO > 0 ? FAIL_COMBO - 1 : 0;
                 }
                 else {
                     SCORE -= 50;
                     COMBO = 0;
+                    FAIL_COMBO += 1;
                 }
                 MAX_COMBO = Math.max( MAX_COMBO, COMBO );
             }
@@ -584,15 +596,16 @@ const game = ( function () {
         document.getElementById( 'score' ).innerHTML = "Score : " + SCORE;          // update the score on the HTML
         document.getElementById( 'combo' ).innerHTML = "x" + COMBO;                 // update the combo on the HTML
         document.getElementById( 'timer' ).innerHTML = String( 20 - ( performance.now( ) - timeInPause )/1000 ).substring( 0, 4 ) + "s"; // update the timer on the HTML
+        document.body.style.backgroundColor = "black";
+        document.body.style.opacity = 1 - 0.20 * FAIL_COMBO;
         // End of the game
-        if ( performance.now( ) - timeInPause >= 19989 ) {
+        if ( FAIL_COMBO == 5 || performance.now( ) - timeInPause >= 19989 ) {
             controls.unlock( );
         }
         if ( ( performance.now( ) - time ) >= reload ) {   
             moveHand( );
         }
         moveObjectsUpAir( );
-        console.log( performance.now( ) );
         // aimHelper( );
 
     }
