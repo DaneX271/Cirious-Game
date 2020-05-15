@@ -1,8 +1,83 @@
 body {
     margin: 0;
     height: 100vh;
+    font-family: monospace;
 }
 
-canvas {
-    display: block;
+div {
+    position: absolute;
+}
+
+.lbl {
+    color: #fff;
+    font-size: 32px;
+    font-weight: bold;
+    position: absolute;
+    bottom: 0px;
+    z-index: 100;
+    text-shadow: #000 1px 1px 1px;
+    background-color: rgba(0,0,0,0.85);
+    padding: 1em;
+}
+
+#block {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 150;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+
+#info {
+    
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    color: #fff;
+    font-size: 32px;
+    font-weight: bold;
+    z-index: 100;
+    text-shadow: #000 1px 1px 1px;
+    padding: 1em;
+
+}
+
+#bottomLabel {
+    bottom: 0px;;
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#combo {
+    left: 0px;
+}
+
+#score {
+    right: 0px;
+}
+
+button {
+	box-shadow:inset 0px 34px 0px -15px #b54b3a;
+	background-color:#a73f2d;
+	border:1px solid #241d13;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:9px 23px;
+	text-decoration:none;
+	text-shadow:0px -1px 0px #7a2a1d;
+}
+button:hover {
+	background-color:#b34332;
+}
+button:active {
+	position:relative;
+	top:1px;
 }
