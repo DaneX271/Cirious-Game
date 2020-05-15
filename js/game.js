@@ -420,6 +420,7 @@ const game = ( function () {
         object.theta = theta;
         object.phi = phi;
         object.max = max;
+        object.ray = raycaster.ray.direction;
         object.xStep = object.max * Math.sin( phi ) / object.steps;
         object.zStep = object.max * Math.cos( phi ) / object.steps;
         object.yMax = beg.y / Math.abs( theta == 0 ? Math.sin( 0.001 ) : Math.sin( theta ) );
@@ -436,6 +437,9 @@ const game = ( function () {
     //      2: throw is finished and won
     const throwed = function( object ) {
    
+        object.mesh.rotation.x += 8 * object.ray.x / object.steps;
+        object.mesh.rotation.y += 8 * object.ray.y / object.steps;
+        object.mesh.rotation.z += 8 * object.ray.z / object.steps;
         object.mesh.position.x += object.xStep;
         object.mesh.position.y = object.yMax * Math.sin( object.theta );
         object.mesh.position.z += object.zStep;
