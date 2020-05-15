@@ -22,7 +22,7 @@ const game = ( function () {
     let pos = new THREE.Vector3( );
 
     // standard position of the camera
-    const origin = new THREE.Vector3( 0, 8, 0 );
+    const origin = new THREE.Vector3( 0, 7, 0 );
 
     // vector along the axis Z
     const z = new THREE.Vector3( 0, 0,  1 );
@@ -325,6 +325,26 @@ const game = ( function () {
             } );
 
         } );
+        let showStreet = false;
+
+        if ( showStreet ) {
+
+            mtlLoader.load( 'street_scene.mtl', ( materials ) => {
+
+                materials.preload( );
+                objLoader.setMaterials( materials );
+                objLoader.load( 'street_scene.obj', ( object ) => {
+                    object.position.set( 0, 0.1, -30);
+                    object.rotation.y = Math.PI;
+                    for ( let mesh of object.children ) {
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+                    }
+                    scene.add( object );
+                })
+            })
+
+        }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -594,11 +614,20 @@ const game = ( function () {
     const update = function( ) {
 
         document.getElementById( 'score' ).innerHTML = "Score : " + SCORE;          // update the score on the HTML
-        document.getElementById( 'combo' ).innerHTML = "x" + COMBO;                 // update the combo on the HTML
+        document.getElementById( 'combo' ) ? document.getElementById( 'combo' ).innerHTML = "x" + COMBO : document.getElementById( 'comboFire' ).innerHTML = "x" + COMBO;   // update the combo on the HTML
         document.getElementById( 'timer' ).innerHTML = String( 20 - ( performance.now( ) - timeInPause )/1000 ).substring( 0, 4 ) + "s"; // update the timer on the HTML
         document.body.style.backgroundColor = "black";
         document.body.style.opacity = 1 - 0.20 * FAIL_COMBO;
-        // End of the game
+        // strike : allows to chage the css of the combo
+        if ( COMBO >= 10 ) {
+            if ( document.getElementById( 'combo' ) )
+                document.getElementById( 'combo' ).id = 'comboFire';
+        }
+        else {
+            if ( document.getElementById( 'comboFire' ) )
+                document.getElementById( 'comboFire' ).id = 'combo';
+        }
+        // End of the game by failing or running out of time
         if ( FAIL_COMBO == 5 || performance.now( ) - timeInPause >= 19989 ) {
             controls.unlock( );
         }
